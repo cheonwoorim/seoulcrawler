@@ -1,0 +1,63 @@
+# -*- coding: 949 -*-
+from urllib.request import urlopen 
+from bs4 import BeautifulSoup 
+import re
+from time import sleep
+import time
+import json
+import os
+import sys
+import csv
+# import retry
+import backoff
+file = open('output.txt','r',encoding='utf-8')
+print(file)
+import requests
+from requests import ReadTimeout, ConnectTimeout, HTTPError, Timeout, ConnectionError
+bonmunsave=open('bonmun.txt','a',encoding='utf-8')
+# file.close()
+line_num=0
+jump='\n'
+
+# @retry(Exception, tries=6)
+# def call_github():
+#     return requests.get(bonmun)
+
+
+# @backoff.on_exception(
+#     backoff.expo,
+#     requests.exceptions.RequestException,
+#     max_tries=5,
+#     giveup=lambda e: e.response is not None and e.response.status_code < 500
+# )
+# def bonmon2():
+for line in file:
+    line_num= line_num +1
+    print(line_num)
+    url=line.strip('\r')
+    print(url)
+
+    bonmun=urlopen(url)
+    files = BeautifulSoup(bonmun, 'html.parser',from_encoding='utf-8')
+
+    ####fileter
+    meta_text = files.find_all("meta")
+    meta_text = re.sub('[\{\}\[\]\/?.,;:|*~`!^\-_+<>@\#$%&\\\=\'\"]',  # Search for all non-letters
+     " ",          # Replace all non-letters with spaces
+    str(meta_text))
+    meta_text = re.sub('[a-zA-Z]',  # Search for all non-letters
+     " ",          # Replace all non-letters with spaces
+    str(meta_text))
+    meta_text = re.sub('   ',  # Search for all non-letters
+     " ",          # Replace all non-letters with spaces
+    str(meta_text))
+
+    meta_text_save= meta_text+jump
+    
+    bonmunsave.write(meta_text_save)
+
+    try:
+        r = requests.get(bonmun, timeout=6.0)
+    except (ConnectTimeout, HTTPError, ReadTimeout, timeout,Timeout, ConnectionError):
+        print("error")
+        continue
